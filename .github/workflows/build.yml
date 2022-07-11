@@ -49,3 +49,6 @@ jobs:
 
       - name: Run tests
         run: ./gradlew cleanTest test --no-build-cache --stacktrace
+
+      - name: Run application
+        run: ./gradlew run
