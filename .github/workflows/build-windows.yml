@@ -61,3 +61,6 @@ jobs:
 
       - name: Run application
         run: ./gradlew run
+
+      - name: Stop Gradle daemon
+        run: ./gradlew --stop
