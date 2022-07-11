@@ -1,0 +1,50 @@
+name: Build
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+
+    steps:
+      - name: Checkout latest code
+        uses: actions/checkout@v2
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: zulu
+          java-version: 11
+
+      - name: Setup build cache
+        uses: pat-s/always-upload-cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build project using Gradle
+        run: ./gradlew build -x test --stacktrace --scan
+
+      - name: Download shared libs
+        run: ./gradlew :downloadLibs
+
+      - name: Set up ld cache
+        run: sudo ldconfig $(realpath libs)
+
+      - name: Download CryptoMiniSat
+        working-directory: bin
+        run: |
+          wget https://github.com/msoos/cryptominisat/releases/download/5.8.0/cryptominisat5_amd64_linux_static.gz
+          gzip -d cryptominisat5_amd64_linux_static.gz
+          mv cryptominisat5_amd64_linux_static cryptominisat5
+
+      - name: Add Cryptominisat to PATH
+        run: |
+          echo "$(realpath bin)" >> $GITHUB_PATH
+
+      - name: Run tests
+        run: ./gradlew cleanTest test --no-build-cache --stacktrace
