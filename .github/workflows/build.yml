@@ -35,17 +35,9 @@ jobs:
       - name: Set up ld cache
         run: sudo ldconfig $(realpath libs)
 
-      - name: Download CryptoMiniSat
+      - name: Check dependencies
         run: |
-          mkdir bin
-          cd bin
-          wget https://github.com/msoos/cryptominisat/releases/download/5.8.0/cryptominisat5_amd64_linux_static.gz
-          gzip -d cryptominisat5_amd64_linux_static.gz
-          mv cryptominisat5_amd64_linux_static cryptominisat5
-
-      - name: Add Cryptominisat to PATH
-        run: |
-          echo "$(realpath bin)" >> $GITHUB_PATH
+          ldd src/main/resources/lib/linux64/*.so
 
       - name: Run tests
         run: ./gradlew cleanTest test --no-build-cache --stacktrace
